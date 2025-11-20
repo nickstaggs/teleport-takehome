@@ -93,7 +93,7 @@ See main application page in [Wireframes](#wireframes), the login page will be a
 
 ### Authentication
 
-The main idea will be to create a session token after logging in and setting the expiration to 10 min into the future. On subsequent requests the expiration will be updated up to a maximum of 8 hours after the original login. The session token will be http only and secure so it will only be manipulated server side and only be transported over https. Samesite will be set to strict to restrict cookies being sent in requests originating from the origin site. After a logout or max expiration the session token will be destroyed which will force the user to reauthenticate. 
+The main idea will be to create a session token after logging in and setting the expiration to 10 min into the future. On subsequent requests the expiration will be updated up to a maximum of 8 hours after the original login. The session token will be http only and secure so it will only be manipulated server side and only be transported over https. Samesite will be set to strict to restrict cookies being sent in requests not originating from the origin site. After a logout or max expiration the session token will be destroyed which will force the user to reauthenticate. 
 
 #### Session Management
 
