@@ -40,6 +40,24 @@ See main application page in [Wireframes](#wireframes), the login page will be a
 
 * https://\<site-root>/\<path>/\<to>/\<directory>
 
+### Error States
+* 401
+    * User will be shown the login page
+    * URL will remain the same
+* 400
+    * Bad file path
+    * URL will remain the same
+    * User will be shown a page that details that the file path was improperly formed and a link to the home directory will be provided if they would like to navigate there
+* 404
+    * Directory does not exist
+    * URL will remain the same
+    * User will be shown a page that details that the file path doesn't exist and a link to the home directory will be provided if they would like to navigate there
+* 500
+    * Server error
+    * If the frontend assets are still able to be served
+        * URL will remain the same
+        * User will be shown a page t
+
 ## API
 
 * GET /api/files/\<path>/\<to>/\<directory>
@@ -98,7 +116,10 @@ The main idea will be to create a session token after logging in and setting the
 #### Session Management
 
 * Creation
-    * On login user will input his credentials, a request will be made to the login endpoint which will hash the input password using Argon2I and compare it to the existing hashed password for the username given. If the password hash matches create a session token via a random number generator. Create a cookie with the name `session` set to the session token value and add it to the response. Store the session token in a map, session token -> { userid, inactivityExpiration, maxExpiration }
+    * On login user will input his credentials, a request will be made to the login endpoint which will hash the input password using `Argon2ID` and compare it to the existing hashed password for the username given. If the password hash matches create a session token. Create a cookie with the name `session` set to the session token value and add it to the response. Store the session token in a map, session token -> { userid, inactivityExpiration, maxExpiration }
+        * Session token Generation
+            * 128 bits
+            * using go's [crypto/rand.text()](https://cs.opensource.google/go/go/+/go1.25.4:src/crypto/rand/text.go;l=14)
         * Possible Enhancements
             * could sign cookie
                 * probably not needed due to the cookie only holding the session id so there really isn't anything to tamper with
@@ -135,19 +156,26 @@ The main idea will be to create a session token after logging in and setting the
     * Mitigations:
         * input validation
             * whitelist well formed file paths
+                * whitelist will likely be a regular expression that permits valid unix based file system directories
+            * Resolve path and ensure that the first part of the file path matches the path of the directory that is being given access to
             
 * Unix vs Windows file system issues
     * probably outside the scope of this exercise but worth calling out
+    * The whitelist file path's would be different as unix is a lot more permissive when it comes to characters that can be a in a file or directory name
+    * windows uses `\` as path separators unix uses `/`
+    * windows has drive names to start file paths
     * I am going to assume unix based file systems for deployment
 
 * XSS attack
     * This is largely mitigated by the design of this application in that there is no user input that will be saved and displayed back
 
 * CSRF attack
+    * This is also largely mitigated because there are no actions that can be performed to change internal state and even in a csrf login attack an attacker would be fooling a user to sign into the attacker's account but since there the access level is the same and there are no change state actions the only thing the attacker would be gaining is possibly a view into the victim's navigation on the site.
     * Mitigations:
         * csrf tokens
-            * generate xsrf token and place in cookie when being directed to login
+            * generate csrf token and place in a cookie, `X-CSRF-TOKEN`, when being directed to login
             * frontend adds the token to a custom header which is then verified server side during authentication
+            * this would only be needed on login. This would prevent a malicious site from tricking a user into logging into an attacker's account at which point the attacker would be able to monitor the victim's actions but as there is no potentially secret data the user could input it may not be worth it to implement.
 
 ## Testing
 
