@@ -173,7 +173,6 @@ The main idea will be to create a session token after logging in and setting the
     * probably outside the scope of this exercise but worth calling out
     * The whitelist file path's would be different as unix is a lot more permissive when it comes to characters that can be a in a file or directory name
     * windows uses `\` as path separators unix uses `/`
-    * windows has drive names to start file paths
     * I am going to assume unix based file systems for deployment
 
 * XSS attack
