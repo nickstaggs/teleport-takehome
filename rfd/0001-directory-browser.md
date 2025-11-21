@@ -34,11 +34,16 @@ See main application page in [Wireframes](#wireframes), the login page will be a
 * Search bar
     * Takes function to act on input into search bar
         * may want to include some kind of debouncing to make it less jerky
-    * May want to think about saving filters and sorting into local storage
 
 ### Site url paths
 
-* https://\<site-root>/\<path>/\<to>/\<directory>
+* `https://<site-root>`
+    * This will redirect to `/files` if the user is authenticated
+* `https://<site-root>/files/<path>/<to>/<directory>?sort=<sort-field>&dir=<asc-or-desc>&filter=<filter-string>`
+    * if sorting or filtering fields are malformed they will be ignored
+        * this will mostly be the case for sort field if it is not one that is available or direction is not `asc` or `desc`
+    * both fields will need to be encoded before being interpreted and used
+* There will be no redirects when needing to reauthenticate, the login page will be shown and once the user authenticates successfully the page will load the directory information
 
 ### Error States
 * 401
@@ -56,11 +61,12 @@ See main application page in [Wireframes](#wireframes), the login page will be a
     * Server error
     * If the frontend assets are still able to be served
         * URL will remain the same
-        * User will be shown a page t
+        * User will be shown a page that details that there was an issue retrieving the information and to try again later
 
 ## API
 
 * GET /api/files/\<path>/\<to>/\<directory>
+    * Sorting and filtering query params will not be sent to the API
     * Responses
         * 200
             ```json
@@ -158,6 +164,10 @@ The main idea will be to create a session token after logging in and setting the
             * whitelist well formed file paths
                 * whitelist will likely be a regular expression that permits valid unix based file system directories
             * Resolve path and ensure that the first part of the file path matches the path of the directory that is being given access to
+            * Example
+                * the root directory for the directory that is being given access to is `/home/user/allowed-dir`
+                * the url path is `../../../../../../etc/passwd` the resolved path would be `/etc/passwd` 
+                * We would try to match the start of the resolved path to the directory being given access to and this would fail because `/etc/passwd` !== `/home/user/allowed-dir`
             
 * Unix vs Windows file system issues
     * probably outside the scope of this exercise but worth calling out
@@ -172,10 +182,8 @@ The main idea will be to create a session token after logging in and setting the
 * CSRF attack
     * This is also largely mitigated because there are no actions that can be performed to change internal state and even in a csrf login attack an attacker would be fooling a user to sign into the attacker's account but since there the access level is the same and there are no change state actions the only thing the attacker would be gaining is possibly a view into the victim's navigation on the site.
     * Mitigations:
-        * csrf tokens
-            * generate csrf token and place in a cookie, `X-CSRF-TOKEN`, when being directed to login
-            * frontend adds the token to a custom header which is then verified server side during authentication
-            * this would only be needed on login. This would prevent a malicious site from tricking a user into logging into an attacker's account at which point the attacker would be able to monitor the victim's actions but as there is no potentially secret data the user could input it may not be worth it to implement.
+        * require content type header to be set to json when validating the login request
+            * must ensure the UI sets this header or else it will be rejected
 
 ## Testing
 
