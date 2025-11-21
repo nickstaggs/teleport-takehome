@@ -162,12 +162,24 @@ The main idea will be to create a session token after logging in and setting the
     * Mitigations:
         * input validation
             * whitelist well formed file paths
-                * whitelist will likely be a regular expression that permits valid unix based file system directories
+                * whitelist will likely be a regular expression that permits alphanumeric characters `[a-z][A-Z][0-9]` and `/`, `_`, `.`, `-`
+                    * This will exclude valid unix file paths but as any other characters are usually considered bad practice anyways it would be worthwhile to push these rules onto the part of the file system that is being given access to
+            * Add length maximum check as well the maximum file path length seems to be 4096 characters and the maximum url length at least for chrome is over 2 million characters. As the file system is under our control and we can further restrict things I think 1024 characters is probably a good maximum here
+                * Restricting this even further might not be a bad idea either.
             * Resolve path and ensure that the first part of the file path matches the path of the directory that is being given access to
-            * Example
-                * the root directory for the directory that is being given access to is `/home/user/allowed-dir`
-                * the url path is `../../../../../../etc/passwd` the resolved path would be `/etc/passwd` 
-                * We would try to match the start of the resolved path to the directory being given access to and this would fail because `/etc/passwd` !== `/home/user/allowed-dir`
+            * Examples
+                * Example 1
+                    * the root directory for the directory that is being given access to is `/home/user/allowed-dir`
+                    * the url path is `../../../../../../etc/passwd` the resolved path would be `/etc/passwd` 
+                    * We would try to match the start of the resolved path to the directory being given access to and this would fail because `/etc/passwd` !== `/home/user/allowed-dir`
+                * Example 2
+                    * the root directory for the directory that is being given access to is `/home/user/allowed-dir`
+                    * the url path is `/$path/path space`
+                    * the regex would fail on this path due to the `$` and ` ` and would be rejected as bad input
+                * Example 3
+                    * the root directory for the directory that is being given access to is `/home/user/allowed-dir`
+                    * the url path is `/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path/path`
+                    * The length of this path is 2,475 characters and would get rejected due to being greater than the maximum allowed length
             
 * Unix vs Windows file system issues
     * probably outside the scope of this exercise but worth calling out
