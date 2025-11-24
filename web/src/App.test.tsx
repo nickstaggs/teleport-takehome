@@ -5,5 +5,5 @@ import { App } from './App';
 test('should render App component', () => {
   render(<App />);
 
-  expect(screen.getByText('Teleport Fullstack Interview')).toBeInTheDocument();
+  expect(screen.getByPlaceholderText('Search')).toBeInTheDocument();
 });

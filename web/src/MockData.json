@@ -1,0 +1,112 @@
+{
+    "name": "project",
+    "type": "directory",
+    "size": 0,
+    "contents": [
+        {
+            "name": "main.pdf",
+            "type": "file",
+            "size": 546299
+        },
+        {
+            "name": "main.go",
+            "type": "file",
+            "size": 4299
+        },
+        {
+            "name": "main.txt",
+            "type": "file",
+            "size": 96
+        },
+        {
+            "name": "dotnet.cs",
+            "type": "file",
+            "size": 5532355
+        },
+        {
+            "name": "kotlin.kt",
+            "type": "file",
+            "size": 45738245
+        },
+        {
+            "name": "index.php",
+            "type": "file",
+            "size": 3683615468795
+        },
+        {
+            "name": "types.ts",
+            "type": "file",
+            "size": 34624578345678
+        },
+        {
+            "name": "react.jsx",
+            "type": "file",
+            "size": 74568467823424
+        },
+        {
+            "name": "react.tsx",
+            "type": "file",
+            "size": 346534674567
+        },
+        {
+            "name": "styles.css",
+            "type": "file",
+            "size": 346534674567
+        },
+        {
+            "name": "script.js",
+            "type": "file",
+            "size": 83299
+        },
+        {
+            "name": "dev",
+            "type": "directory",
+            "size": 0
+        },
+        {
+            "name": "stage",
+            "type": "directory",
+            "size": 0
+        },
+        {
+            "name": "preprod",
+            "type": "directory",
+            "size": 0
+        },
+        {
+            "name": "op",
+            "type": "directory",
+            "size": 0
+        },
+        {
+            "name": "etc",
+            "type": "directory",
+            "size": 0
+        },
+        {
+            "name": "prod",
+            "type": "directory",
+            "size": 0
+        },
+        {
+            "name": "var",
+            "type": "directory",
+            "size": 0
+        },
+        {
+            "name": "data",
+            "type": "directory",
+            "size": 0
+        },
+        {
+            "name": "etl",
+            "type": "directory",
+            "size": 0
+        },
+        {
+            "name": "test",
+            "type": "directory",
+            "size": 0
+        }
+    ]
+}
