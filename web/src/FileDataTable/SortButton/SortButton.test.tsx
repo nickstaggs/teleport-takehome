@@ -1,4 +1,3 @@
-/*eslint-disable testing-library/no-node-access*/
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { SortButton } from './SortButton';
@@ -20,11 +19,7 @@ describe('SortButton', () => {
     );
 
     expect(screen.getByText('Test')).toBeInTheDocument();
-
-    let icon = document.querySelector('svg');
-    expect(icon?.attributes.getNamedItem('data-icon')?.value).toBe(
-      'arrows-up-down'
-    );
+    expect(screen.getByTestId('arrowsUpDownIcon')).toBeInTheDocument();
   });
 
   it('should render render with up down arrows when sort field is not equal to sort state sort field', () => {
@@ -41,11 +36,7 @@ describe('SortButton', () => {
     );
 
     expect(screen.getByText('Test')).toBeInTheDocument();
-
-    let icon = document.querySelector('svg');
-    expect(icon?.attributes.getNamedItem('data-icon')?.value).toBe(
-      'arrows-up-down'
-    );
+    expect(screen.getByTestId('arrowsUpDownIcon')).toBeInTheDocument();
   });
 
   it('should render render with up arrow when sort field is equal to sort state sort field and direction is asc', () => {
@@ -62,9 +53,7 @@ describe('SortButton', () => {
     );
 
     expect(screen.getByText('Name')).toBeInTheDocument();
-
-    let icon = document.querySelector('svg');
-    expect(icon?.attributes.getNamedItem('data-icon')?.value).toBe('arrow-up');
+    expect(screen.getByTestId('arrowUpIcon')).toBeInTheDocument();
   });
 
   it('should render render with up arrow when sort field is equal to sort state sort field and direction is desc', () => {
@@ -81,11 +70,7 @@ describe('SortButton', () => {
     );
 
     expect(screen.getByText('Name')).toBeInTheDocument();
-
-    let icon = document.querySelector('svg');
-    expect(icon?.attributes.getNamedItem('data-icon')?.value).toBe(
-      'arrow-down'
-    );
+    expect(screen.getByTestId('arrowDownIcon')).toBeInTheDocument();
   });
 
   it('should call click handler when clicked', () => {

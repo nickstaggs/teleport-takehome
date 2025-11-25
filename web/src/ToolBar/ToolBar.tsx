@@ -41,7 +41,7 @@ const ToolBarWrapper = styled.div`
 export function ToolBar(props: ToolBarProps) {
   return (
     <ToolBarWrapper>
-      <div></div>
+      <div>{/* Placeholder for breadcrumbs */}</div>
       <div id="nameFilterContainer">
         <input
           id="nameFilter"
@@ -49,11 +49,13 @@ export function ToolBar(props: ToolBarProps) {
           value={props.search}
           onChange={e => props.handleSearchChange(e)}
           type="text"
+          data-testid="filterInput"
         />
         <FontAwesomeIcon
           id="nameFilterIcon"
           size="xs"
           icon={faMagnifyingGlass}
+          data-testid="magnifyingGlassIcon"
         />
       </div>
     </ToolBarWrapper>

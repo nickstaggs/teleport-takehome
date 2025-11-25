@@ -1,4 +1,3 @@
-/*eslint-disable testing-library/no-node-access*/
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { ToolBar } from './ToolBar';
@@ -10,23 +9,14 @@ describe('ToolBar', () => {
     render(<ToolBar search={''} handleSearchChange={handleChange} />);
 
     expect(screen.getByPlaceholderText('Search')).toBeInTheDocument();
-
-    let icon = document.querySelector('svg');
-    expect(icon?.attributes.getNamedItem('data-icon')?.value).toBe(
-      'magnifying-glass'
-    );
+    expect(screen.getByTestId('magnifyingGlassIcon')).toBeInTheDocument();
   });
 
   it('should render render with search text when there is search text', () => {
     render(<ToolBar search={'file.pdf'} handleSearchChange={handleChange} />);
 
-    let input = document.querySelector('input');
-    expect(input?.value).toBe('file.pdf');
-
-    let icon = document.querySelector('svg');
-    expect(icon?.attributes.getNamedItem('data-icon')?.value).toBe(
-      'magnifying-glass'
-    );
+    expect(screen.getByDisplayValue('file.pdf')).toBeInTheDocument();
+    expect(screen.getByTestId('magnifyingGlassIcon')).toBeInTheDocument();
   });
 
   it('should call click handle search change when something is typed into search bar', () => {

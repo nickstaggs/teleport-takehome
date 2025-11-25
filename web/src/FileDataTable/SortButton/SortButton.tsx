@@ -10,12 +10,30 @@ export function SortButton(props: SortButtonProps) {
   const getIcon = () => {
     if (props.sortField === props.sortState.sortField) {
       if (props.sortState.sortDir === 'asc') {
-        return <FontAwesomeIcon size="xs" icon={faArrowUp} />;
+        return (
+          <FontAwesomeIcon
+            size="xs"
+            icon={faArrowUp}
+            data-testid="arrowUpIcon"
+          />
+        );
       } else {
-        return <FontAwesomeIcon size="xs" icon={faArrowDown} />;
+        return (
+          <FontAwesomeIcon
+            size="xs"
+            icon={faArrowDown}
+            data-testid="arrowDownIcon"
+          />
+        );
       }
     } else {
-      return <FontAwesomeIcon size="xs" icon={faArrowsUpDown} />;
+      return (
+        <FontAwesomeIcon
+          size="xs"
+          icon={faArrowsUpDown}
+          data-testid="arrowsUpDownIcon"
+        />
+      );
     }
   };
 

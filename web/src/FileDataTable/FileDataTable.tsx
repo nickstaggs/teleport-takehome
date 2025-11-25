@@ -25,6 +25,8 @@ const TableWrapper = styled.div`
     padding-top: 4px;
     padding-bottom: 4px;
     border-bottom: 1px solid #e5e5e5;
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
 
   .left-align {
@@ -85,8 +87,8 @@ export function FileDataTable(props: FileDataTableProps) {
           </tr>
         </thead>
         <tbody>
-          {props.fileData.map((d, i) => (
-            <FileDataRow key={i} fileData={d} />
+          {props.fileData.map(d => (
+            <FileDataRow key={d.name} fileData={d} />
           ))}
         </tbody>
       </table>

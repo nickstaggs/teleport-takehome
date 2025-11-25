@@ -5,9 +5,9 @@ import { FileData } from 'src/utils/types';
 export function FileDataRow(props: FileDataRowProps) {
   const getIcon = (fileType: string) => {
     if (fileType === 'file') {
-      return <FontAwesomeIcon icon={faFile} />;
+      return <FontAwesomeIcon icon={faFile} data-testid="fileIcon" />;
     } else if (fileType === 'directory') {
-      return <FontAwesomeIcon icon={faFolder} />;
+      return <FontAwesomeIcon icon={faFolder} data-testid="folderIcon" />;
     }
   };
 

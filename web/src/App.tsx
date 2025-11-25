@@ -1,33 +1,21 @@
 import mockData from './MockData.json';
 import { ChangeEvent, useState } from 'react';
 import { FileData, SortState } from './utils/types';
-import { sortFileData } from './utils/utils';
+import { sortAndFilterFileData } from './utils/utils';
 import { FileDataTable } from './FileDataTable/FileDataTable';
 import { ToolBar } from './ToolBar/ToolBar';
 
 export function App() {
-  const allContents: FileData[] = mockData.contents;
-  const [contents, setContents] = useState<FileData[]>(mockData.contents);
+  const [contents] = useState<FileData[]>(mockData.contents as FileData[]);
   const [search, setSearch] = useState('');
   const [sortState, setSortState] = useState<SortState>({
-    sortField: '',
-    sortDir: '',
+    sortField: 'name',
+    sortDir: 'asc',
   });
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setSearch(val);
-
-    if (val !== '') {
-      setContents(
-        sortFileData(
-          allContents.filter(o => o.name.includes(val)),
-          sortState
-        )
-      );
-    } else {
-      setContents(sortFileData(allContents, sortState));
-    }
   };
 
   const handleSortChange = (sortField: keyof FileData) => {
@@ -44,15 +32,13 @@ export function App() {
         setSortState(newSortState);
       }
     }
-
-    setContents(sortFileData(contents, newSortState));
   };
 
   return (
     <>
       <ToolBar search={search} handleSearchChange={handleSearchChange} />
       <FileDataTable
-        fileData={contents}
+        fileData={sortAndFilterFileData(contents, sortState, search)}
         sortState={sortState}
         handleSortChange={handleSortChange}
       />
