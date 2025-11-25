@@ -73,8 +73,8 @@ describe('sortAndFilterFileData', () => {
 
     it('should sort type desc correctly (basic)', () => {
       const fileData: FileData[] = [
-        { name: 'b', size: 0, type: 'directory' },
         { name: 'c', size: 0, type: 'file' },
+        { name: 'b', size: 0, type: 'directory' },
         { name: 'a', size: 99, type: 'file' },
       ];
 
@@ -93,9 +93,9 @@ describe('sortAndFilterFileData', () => {
 
     it('should sort size asc correctly (basic)', () => {
       const fileData: FileData[] = [
+        { name: 'a', size: 9992, type: 'file' },
         { name: 'b', size: 9991, type: 'file' },
         { name: 'c', size: 9991, type: 'file' },
-        { name: 'a', size: 9992, type: 'file' },
       ];
 
       const arr = sortAndFilterFileData(
@@ -169,7 +169,7 @@ describe('sortAndFilterFileData', () => {
       expect(arr[0].name).toBe('a');
     });
 
-    it('should filter in a case sensitive way', () => {
+    it('should filter in a case insensitive way', () => {
       const fileData: FileData[] = [
         { name: 'b', size: 9991, type: 'file' },
         { name: 'A', size: 0, type: 'directory' },
@@ -182,8 +182,9 @@ describe('sortAndFilterFileData', () => {
         'a'
       );
 
-      expect(arr.length).toBe(1);
-      expect(arr[0].name).toBe('a');
+      expect(arr.length).toBe(2);
+      expect(arr.map(f => f.name)).toContain('a');
+      expect(arr.map(f => f.name)).toContain('A');
     });
   });
 

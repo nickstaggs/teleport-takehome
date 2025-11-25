@@ -49,7 +49,6 @@ export function ToolBar(props: ToolBarProps) {
           value={props.search}
           onChange={e => props.handleSearchChange(e)}
           type="text"
-          data-testid="filterInput"
         />
         <FontAwesomeIcon
           id="nameFilterIcon"

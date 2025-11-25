@@ -31,7 +31,9 @@ export const sortAndFilterFileData = (
 ) => {
   if (filterVal !== '') {
     return sortFileData(
-      fileData.filter(o => o.name.includes(filterVal)),
+      fileData.filter(o =>
+        o.name.toLowerCase().includes(filterVal.toLowerCase())
+      ),
       sortState
     );
   } else {
