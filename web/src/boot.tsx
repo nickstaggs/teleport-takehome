@@ -1,12 +1,11 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { AppWrapper } from './AppWrapper';
 
-import { App } from './App';
+const container = document.getElementById('container');
 
-const app = document.getElementById('app');
-
-createRoot(app!).render(
+createRoot(container!).render(
   <StrictMode>
-    <App />
+    <AppWrapper />
   </StrictMode>
 );

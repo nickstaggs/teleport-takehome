@@ -30,6 +30,8 @@ func NewServer(webassets fs.FS) (*Server, error) {
 		http.ServeFileFS(w, r, webassets, "index.html")
 	}))
 
+
+
 	return s, nil
 }
 

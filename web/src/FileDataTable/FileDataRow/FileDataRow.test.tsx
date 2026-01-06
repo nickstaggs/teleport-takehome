@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FileDataRow } from './FileDataRow';
+import { MemoryRouter } from 'react-router';
 
 describe('FileDataRow', () => {
   it('should render with correct information for file', () => {
@@ -21,13 +22,16 @@ describe('FileDataRow', () => {
 
   it('should render correct information for directory', () => {
     render(
-      <FileDataRow
+      <MemoryRouter>
+        <FileDataRow
         fileData={{
           name: 'etc',
           type: 'directory',
           size: 0,
         }}
       />
+      </MemoryRouter>
+      
     );
 
     expect(screen.queryByText('0')).not.toBeInTheDocument();
