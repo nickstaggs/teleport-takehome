@@ -1,7 +1,7 @@
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ChangeEvent } from 'react';
 import styled from 'styled-components';
+import { FilterInput } from './FilterInput/FilterInput';
+import { Breadcrumbs } from './Breadcrumbs/Breadcrumbs';
 
 const ToolBarWrapper = styled.div`
   display: grid;
@@ -41,22 +41,14 @@ const ToolBarWrapper = styled.div`
 export function ToolBar(props: ToolBarProps) {
   return (
     <ToolBarWrapper>
-      <div>{/* Placeholder for breadcrumbs */}</div>
-      <div id="nameFilterContainer">
-        <input
-          id="nameFilter"
-          placeholder="Search"
-          value={props.search}
-          onChange={e => props.handleSearchChange(e)}
-          type="text"
-        />
-        <FontAwesomeIcon
-          id="nameFilterIcon"
-          size="xs"
-          icon={faMagnifyingGlass}
-          data-testid="magnifyingGlassIcon"
-        />
-      </div>
+      <Breadcrumbs
+        filePathArr={props.filePathArr}
+        isValidPath={props.isValidPath}
+      />
+      <FilterInput
+        search={props.search}
+        handleSearchChange={props.handleSearchChange}
+      />
     </ToolBarWrapper>
   );
 }
@@ -64,4 +56,6 @@ export function ToolBar(props: ToolBarProps) {
 type ToolBarProps = {
   search: string;
   handleSearchChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  filePathArr: string[];
+  isValidPath: boolean;
 };

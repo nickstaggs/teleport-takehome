@@ -6,5 +6,7 @@ export type FileData = {
 
 export type SortState = {
   sortField: '' | keyof FileData;
-  sortDir: '' | 'asc' | 'desc';
+  sortDir: SortDirection;
 };
+
+export type SortDirection = '' | 'asc' | 'desc';
