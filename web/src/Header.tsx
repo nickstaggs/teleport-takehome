@@ -25,10 +25,8 @@ export function Header() {
   const { handleLogoff, isAuthenticated } = useClient();
   return (
     <HeaderWrapper id="header">
-      {isAuthenticated ? (
+      {isAuthenticated && (
         <button onClick={() => handleLogoff()}>Logout</button>
-      ) : (
-        <div></div>
       )}
       <h1>File Browser</h1>
     </HeaderWrapper>
