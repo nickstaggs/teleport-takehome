@@ -9,7 +9,7 @@ const HeaderWrapper = styled.div`
     background: none !important;
     border: none;
     padding: 0 !important;
-    color: -webkit-link;
+    color: blue;
     text-decoration: underline;
     cursor: pointer;
     justify-self: end;
