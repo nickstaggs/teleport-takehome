@@ -30,11 +30,9 @@ export const sortAndFilterFileData = (
   filterVal: string
 ) => {
   if (filterVal !== '') {
-    const filterValLower = filterVal.toLowerCase()
+    const filterValLower = filterVal.toLowerCase();
     return sortFileData(
-      fileData.filter(o =>
-        o.name.toLowerCase().includes(filterValLower)
-      ),
+      fileData.filter(o => o.name.toLowerCase().includes(filterValLower)),
       sortState
     );
   } else {

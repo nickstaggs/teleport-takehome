@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { FilterInput } from "./FilterInput";
+import { FilterInput } from './FilterInput';
 
 describe('FilterInput', () => {
   const handleChange = vi.fn();
@@ -13,7 +13,9 @@ describe('FilterInput', () => {
   });
 
   it('should render render with search text when there is search text', () => {
-    render(<FilterInput search={'file.pdf'} handleSearchChange={handleChange} />);
+    render(
+      <FilterInput search={'file.pdf'} handleSearchChange={handleChange} />
+    );
 
     expect(screen.getByDisplayValue('file.pdf')).toBeInTheDocument();
     expect(screen.getByTestId('magnifyingGlassIcon')).toBeInTheDocument();

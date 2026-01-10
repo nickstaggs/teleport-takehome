@@ -1,31 +1,28 @@
-import { Navigate, useRoutes, BrowserRouter } from "react-router";
-import { App, AppProps } from "./App";
-import { useClient } from "./utils/useClient";
-import { Header } from "./Header";
+import { Navigate, useRoutes, BrowserRouter } from 'react-router';
+import { App } from './App';
+import { Header } from './Header';
 
-const AppRoutes = (props: AppProps) => {
-        const app = <App isAuthenticated={props.isAuthenticated} handleLogin={props.handleLogin} getFiles={props.getFiles} isLoading={props.isLoading} />;
-        const notFound = <div>404</div>
-        const routes = [
-            { path: '/', element: <Navigate to={'/files'}/> },
-            { path: '/files', element: app },
-            { path: '/files/*', element: app },
-            { path: '/*', element: notFound },
-        ];
-        return useRoutes(routes);
-    };
+const AppRoutes = () => {
+  const app = <App />;
+  const notFound = <div>404</div>;
+  const routes = [
+    { path: '/', element: <Navigate to={'/files'} /> },
+    { path: '/files', element: app },
+    { path: '/files/*', element: app },
+    { path: '/*', element: notFound },
+  ];
+  return useRoutes(routes);
+};
 
 export function AppWrapper() {
-    const {isAuthenticated, isLoading, handleLogin, handleLogoff, getFiles} = useClient();
-
-    return(
-        <>
-            <Header handleLogout={handleLogoff} isAuthenticated={isAuthenticated} />
-            <BrowserRouter>
-                <AppRoutes isAuthenticated={isAuthenticated} handleLogin={handleLogin} getFiles={getFiles} isLoading={isLoading} />
-            </BrowserRouter>
-            <style>
-                {`
+  return (
+    <>
+      <Header />
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+      <style>
+        {`
                     body {
                         margin: 0;
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -56,7 +53,7 @@ export function AppWrapper() {
                         width: 100%;
                     }
                 `}
-            </style>
-        </>
-    )
+      </style>
+    </>
+  );
 }

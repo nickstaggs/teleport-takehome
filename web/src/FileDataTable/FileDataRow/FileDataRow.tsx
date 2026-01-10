@@ -40,7 +40,11 @@ export function FileDataRow(props: FileDataRowProps) {
     <tr>
       <td className="left-align">{getIcon(props.fileData.type)}</td>
       <td className="left-align" title={props.fileData.name}>
-        {props.fileData.type === 'directory' ? <Link to={props.fileData.name}>{props.fileData.name}</Link> : props.fileData.name}
+        {props.fileData.type === 'directory' ? (
+          <Link to={props.fileData.name}>{props.fileData.name}</Link>
+        ) : (
+          props.fileData.name
+        )}
       </td>
       <td className="right-align">
         {getFileSizeText(props.fileData.type, props.fileData.size)}

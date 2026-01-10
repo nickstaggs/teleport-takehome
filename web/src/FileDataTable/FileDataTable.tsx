@@ -44,7 +44,7 @@ const TableWrapper = styled.div`
   }
 
   #empty-folder {
-    margin-top: .5rem;
+    margin-top: 0.5rem;
   }
 
   .sort-button {
@@ -96,7 +96,9 @@ export function FileDataTable(props: FileDataTableProps) {
           ))}
         </tbody>
       </table>
-      {props.fileData.length === 0 && <div id='empty-folder'>This folder is empty</div>}
+      {props.fileData.length === 0 && (
+        <div id="empty-folder">This folder is empty</div>
+      )}
     </TableWrapper>
   );
 }

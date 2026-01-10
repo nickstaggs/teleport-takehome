@@ -24,14 +24,13 @@ describe('FileDataRow', () => {
     render(
       <MemoryRouter>
         <FileDataRow
-        fileData={{
-          name: 'etc',
-          type: 'directory',
-          size: 0,
-        }}
-      />
+          fileData={{
+            name: 'etc',
+            type: 'directory',
+            size: 0,
+          }}
+        />
       </MemoryRouter>
-      
     );
 
     expect(screen.queryByText('0')).not.toBeInTheDocument();

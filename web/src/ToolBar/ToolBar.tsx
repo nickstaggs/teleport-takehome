@@ -41,8 +41,14 @@ const ToolBarWrapper = styled.div`
 export function ToolBar(props: ToolBarProps) {
   return (
     <ToolBarWrapper>
-      <Breadcrumbs filePathArr={props.filePathArr} isValidPath={props.isValidPath}/>
-      <FilterInput search={props.search} handleSearchChange={props.handleSearchChange} />
+      <Breadcrumbs
+        filePathArr={props.filePathArr}
+        isValidPath={props.isValidPath}
+      />
+      <FilterInput
+        search={props.search}
+        handleSearchChange={props.handleSearchChange}
+      />
     </ToolBarWrapper>
   );
 }
