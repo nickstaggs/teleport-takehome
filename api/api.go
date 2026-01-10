@@ -106,7 +106,7 @@ func (s *Server) getFiles(w http.ResponseWriter, r *http.Request) {
 	info, err := os.Stat(fullPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			http.Error(w, "Directory does not exist", http.StatusNotFound)
+			http.Error(w, "File or directory does not exist", http.StatusNotFound)
 			return
 		}
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -151,8 +151,7 @@ func (s *Server) resolvePath(urlPath string) (string, error) {
 	// Join with root directory
 	fullPath := filepath.Join(s.rootDir, cleanPath)
 	
-	// Ensure the full path is within the root directory (before checking if it exists)
-	// This prevents path traversal attacks
+	// Get absolute paths for comparison
 	fullPathAbs, err := filepath.Abs(fullPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to get absolute path: %w", err)
@@ -163,7 +162,14 @@ func (s *Server) resolvePath(urlPath string) (string, error) {
 		return "", fmt.Errorf("failed to get absolute root directory: %w", err)
 	}
 	
-	if !strings.HasPrefix(fullPathAbs, rootDirAbs+string(filepath.Separator)) && fullPathAbs != rootDirAbs {
+	// Use filepath.Rel to check if fullPath is within rootDir
+	relPath, err := filepath.Rel(rootDirAbs, fullPathAbs)
+	if err != nil {
+		return "", fmt.Errorf("failed to compute relative path: %w", err)
+	}
+	
+	// If the relative path starts with "..", it's outside the root directory
+	if strings.HasPrefix(relPath, "..") {
 		return "", fmt.Errorf("path traversal attempt detected")
 	}
 	
@@ -179,7 +185,13 @@ func (s *Server) resolvePath(urlPath string) (string, error) {
 	}
 	
 	// Ensure the resolved path is still within the root directory (in case of symlinks)
-	if !strings.HasPrefix(resolvedPath, rootDirAbs+string(filepath.Separator)) && resolvedPath != rootDirAbs {
+	relPathResolved, err := filepath.Rel(rootDirAbs, resolvedPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to compute relative path for resolved path: %w", err)
+	}
+	
+	// If the relative path starts with "..", it's outside the root directory
+	if strings.HasPrefix(relPathResolved, "..") {
 		return "", fmt.Errorf("path traversal attempt detected")
 	}
 	
