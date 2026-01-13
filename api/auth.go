@@ -59,16 +59,16 @@ func NewSessionManager() *SessionManager {
 	
 	// Create 2 fake users with hardcoded password hashes
 	// Password for both users: "password"
-	// These hashes are pre-generated for simplicity
+	// These hashes are pre-generated and static so they work across server restarts
 	sm.users["alice"] = &User{
 		Username: "alice",
-		// Generated with: hashPassword("password")
-		PasswordHash: encodePasswordHash("password", generateSalt()),
+		// Hash for password "password"
+		PasswordHash: "yJg3w0gbQpVei0eHpVQJ9Q:Vm7sOUeOYCRxoye3oyFnOEXnOzmTiDAb2JzD4YYUEkA",
 	}
 	sm.users["bob"] = &User{
 		Username: "bob",
-		// Generated with: hashPassword("password")
-		PasswordHash: encodePasswordHash("password", generateSalt()),
+		// Hash for password "password"
+		PasswordHash: "AD2My0yV5W1IftJuXrjnnw:yrqh7B4FSIDjncTLbkXte/0KpTIyQtOt0llOTNUOjzE",
 	}
 	
 	return sm
@@ -103,31 +103,27 @@ func encodePasswordHash(password string, salt []byte) string {
 
 // verifyPassword verifies a password against a stored hash
 func verifyPassword(password, encodedHash string) bool {
-	// Decode the stored hash
-	var salt, hash []byte
-	_, err := fmt.Sscanf(encodedHash, "%s:%s", &salt, &hash)
+	// Parse the encoded hash (format: base64(salt):base64(hash))
+	parts := []byte(encodedHash)
+	colonIdx := -1
+	for i, b := range parts {
+		if b == ':' {
+			colonIdx = i
+			break
+		}
+	}
+	if colonIdx == -1 {
+		return false
+	}
+	
+	// Decode salt and hash from base64
+	salt, err := base64.RawStdEncoding.DecodeString(string(parts[:colonIdx]))
 	if err != nil {
-		// Try parsing with base64
-		parts := []byte(encodedHash)
-		colonIdx := -1
-		for i, b := range parts {
-			if b == ':' {
-				colonIdx = i
-				break
-			}
-		}
-		if colonIdx == -1 {
-			return false
-		}
-		
-		salt, err = base64.RawStdEncoding.DecodeString(string(parts[:colonIdx]))
-		if err != nil {
-			return false
-		}
-		hash, err = base64.RawStdEncoding.DecodeString(string(parts[colonIdx+1:]))
-		if err != nil {
-			return false
-		}
+		return false
+	}
+	hash, err := base64.RawStdEncoding.DecodeString(string(parts[colonIdx+1:]))
+	if err != nil {
+		return false
 	}
 	
 	// Compute hash of provided password with stored salt
