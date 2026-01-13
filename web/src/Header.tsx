@@ -1,9 +1,10 @@
 import styled from 'styled-components';
 import { useClient } from './utils/ClientContext';
 
-const HeaderWrapper = styled.div`
+const HeaderWrapper = styled.div<{ $isAuthenticated: boolean }>`
   display: grid;
-  grid-template-rows: 1fr 4fr;
+  grid-template-rows: ${({ $isAuthenticated }) =>
+    $isAuthenticated ? '1fr 4fr' : 'auto'};
 
   button {
     background: none !important;
@@ -18,16 +19,18 @@ const HeaderWrapper = styled.div`
 
   h1 {
     justify-self: center;
+    align-self: center;
   }
 `;
 
 export function Header() {
   const { handleLogoff, isAuthenticated } = useClient();
+  const handleLogoutClick = () => {
+    void handleLogoff();
+  };
   return (
-    <HeaderWrapper id="header">
-      {isAuthenticated && (
-        <button onClick={() => handleLogoff()}>Logout</button>
-      )}
+    <HeaderWrapper id="header" $isAuthenticated={isAuthenticated}>
+      {isAuthenticated && <button onClick={handleLogoutClick}>Logout</button>}
       <h1>File Browser</h1>
     </HeaderWrapper>
   );

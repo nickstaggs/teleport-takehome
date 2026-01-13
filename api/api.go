@@ -17,13 +17,14 @@ const (
 
 var (
 	// pathWhitelistRegex allows alphanumeric, /, _, ., and -
-	pathWhitelistRegex = regexp.MustCompile(`^[a-zA-Z0-9/_.\-]*$`)
+	pathWhitelistRegex = regexp.MustCompile(`^[a-zA-Z0-9/_.\-@]*$`)
 )
 
 // Server serves the directory browser API and webapp.
 type Server struct {
-	handler http.Handler
-	rootDir string
+	handler        http.Handler
+	rootDir        string
+	sessionManager *SessionManager
 }
 
 // FileInfo represents information about a file or directory
@@ -45,13 +46,16 @@ func NewServer(webassets fs.FS) (*Server, error) {
 
 	mux := http.NewServeMux()
 	s := &Server{
-		handler: mux,
-		rootDir: rootDir,
+		handler:        mux,
+		rootDir:        rootDir,
+		sessionManager: NewSessionManager(),
 	}
 
 	// API routes
 	mux.Handle("/api/hello", http.HandlerFunc(s.hello))
-	mux.Handle("/api/files/", http.HandlerFunc(s.getFiles))
+	mux.Handle("/api/login", http.HandlerFunc(s.login))
+	mux.Handle("/api/logout", http.HandlerFunc(s.logout))
+	mux.Handle("/api/files/", http.HandlerFunc(s.requireAuth(s.getFiles)))
 
 	// web assets
 	hfs := http.FS(webassets)
@@ -147,32 +151,32 @@ func (s *Server) validatePath(path string) error {
 func (s *Server) resolvePath(urlPath string) (string, error) {
 	// Clean the path to remove any .. or . components
 	cleanPath := filepath.Clean(urlPath)
-	
+
 	// Join with root directory
 	fullPath := filepath.Join(s.rootDir, cleanPath)
-	
+
 	// Get absolute paths for comparison
 	fullPathAbs, err := filepath.Abs(fullPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to get absolute path: %w", err)
 	}
-	
+
 	rootDirAbs, err := filepath.Abs(s.rootDir)
 	if err != nil {
 		return "", fmt.Errorf("failed to get absolute root directory: %w", err)
 	}
-	
+
 	// Use filepath.Rel to check if fullPath is within rootDir
 	relPath, err := filepath.Rel(rootDirAbs, fullPathAbs)
 	if err != nil {
 		return "", fmt.Errorf("failed to compute relative path: %w", err)
 	}
-	
+
 	// If the relative path starts with "..", it's outside the root directory
 	if strings.HasPrefix(relPath, "..") {
 		return "", fmt.Errorf("path traversal attempt detected")
 	}
-	
+
 	// Resolve any symlinks if the path exists
 	resolvedPath, err := filepath.EvalSymlinks(fullPath)
 	if err != nil {
@@ -183,18 +187,18 @@ func (s *Server) resolvePath(urlPath string) (string, error) {
 		}
 		return "", fmt.Errorf("failed to resolve path: %w", err)
 	}
-	
+
 	// Ensure the resolved path is still within the root directory (in case of symlinks)
 	relPathResolved, err := filepath.Rel(rootDirAbs, resolvedPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to compute relative path for resolved path: %w", err)
 	}
-	
+
 	// If the relative path starts with "..", it's outside the root directory
 	if strings.HasPrefix(relPathResolved, "..") {
 		return "", fmt.Errorf("path traversal attempt detected")
 	}
-	
+
 	return resolvedPath, nil
 }
 
@@ -242,4 +246,105 @@ func (s *Server) readFileInfo(path string, info os.FileInfo) (*FileInfo, error) 
 	}
 
 	return fileInfo, nil
+}
+
+// LoginRequest represents a login request
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+// login handles POST requests to /api/login
+func (s *Server) login(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Require Content-Type: application/json for CSRF protection
+	contentType := r.Header.Get("Content-Type")
+	if contentType != "application/json" {
+		http.Error(w, "Content-Type must be application/json", http.StatusBadRequest)
+		return
+	}
+
+	var req LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Create session
+	token, err := s.sessionManager.CreateSession(req.Username, req.Password)
+	if err != nil {
+		if err == ErrInvalidCredentials {
+			http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+			return
+		}
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	// Set secure cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   int(maxSessionDuration.Seconds()),
+	})
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// logout handles POST requests to /api/logout
+func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Get session cookie
+	cookie, err := r.Cookie(sessionCookieName)
+	if err == nil {
+		// Delete session
+		s.sessionManager.DeleteSession(cookie.Value)
+	}
+
+	// Clear cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     sessionCookieName,
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   -1,
+	})
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// requireAuth is a middleware that requires authentication
+func (s *Server) requireAuth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get session cookie
+		cookie, err := r.Cookie(sessionCookieName)
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// Validate session
+		_, err = s.sessionManager.ValidateSession(cookie.Value)
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// Call next handler
+		next(w, r)
+	}
 }
