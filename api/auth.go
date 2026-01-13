@@ -187,34 +187,30 @@ func (sm *SessionManager) CreateSession(username, password string) (string, erro
 
 // ValidateSession validates a session token and returns the user ID
 func (sm *SessionManager) ValidateSession(token string) (string, error) {
-	sm.mu.RLock()
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+
 	session, exists := sm.sessions[token]
-	sm.mu.RUnlock()
-	
 	if !exists {
 		return "", ErrSessionNotFound
 	}
-	
+
 	now := time.Now()
-	
+
 	// Check if session has expired
 	if now.After(session.InactivityExpiry) || now.After(session.MaxExpiry) {
-		sm.mu.Lock()
 		delete(sm.sessions, token)
-		sm.mu.Unlock()
 		return "", ErrSessionExpired
 	}
-	
+
 	// Update inactivity expiry (but don't exceed max expiry)
 	newInactivityExpiry := now.Add(inactivityTimeout)
 	if newInactivityExpiry.After(session.MaxExpiry) {
 		newInactivityExpiry = session.MaxExpiry
 	}
-	
-	sm.mu.Lock()
+
 	session.InactivityExpiry = newInactivityExpiry
-	sm.mu.Unlock()
-	
+
 	return session.UserID, nil
 }
 

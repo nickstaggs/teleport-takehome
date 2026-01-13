@@ -59,7 +59,7 @@ export function ClientProvider({
     setError(null);
 
     try {
-      const path = dirs.join('/');
+      const path = dirs.filter(d => d !== '').join('/');
       const url = `/api/files/${path}`;
       const response = await fetch(url);
 

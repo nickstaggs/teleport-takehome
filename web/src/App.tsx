@@ -4,7 +4,7 @@ import { ToolBar } from './ToolBar/ToolBar';
 import { useSortAndFilterState } from './utils/useSortAndFilterState';
 import { FileData } from './utils/types';
 import { Login } from './Login/Login';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router';
 import { useClient } from './utils/ClientContext';
 
@@ -30,11 +30,11 @@ export function App() {
   }, [params, getFiles, isAuthenticated]);
 
   // Create a callback that refetches files after login
-  const refetchFiles = (dirs: string[]) => {
+  const refetchFiles = useCallback((dirs: string[]) => {
     void getFiles(dirs).then(files => {
       setContents(files);
     });
-  };
+  }, [getFiles]);
 
   return (
     <div id="app">
