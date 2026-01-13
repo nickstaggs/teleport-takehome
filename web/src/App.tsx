@@ -4,14 +4,14 @@ import { ToolBar } from './ToolBar/ToolBar';
 import { useSortAndFilterState } from './utils/useSortAndFilterState';
 import { FileData } from './utils/types';
 import { Login } from './Login/Login';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { useClient } from './utils/ClientContext';
 
 export function App() {
   const { sortState, search, handleSearchChange, handleSortChange } =
     useSortAndFilterState();
-  const { getFiles, isLoading, isAuthenticated, handleLogin, error } = useClient();
+  const { getFiles, isLoading, isAuthenticated } = useClient();
   const [contents, setContents] = useState<FileData[] | null>([]);
   const [filePathArr, setFilePathArr] = useState<string[]>([]);
   const params = useParams();
@@ -28,13 +28,6 @@ export function App() {
       });
     }
   }, [params, getFiles, isAuthenticated]);
-
-  // Create a callback that refetches files after login
-  const refetchFiles = useCallback((dirs: string[]) => {
-    void getFiles(dirs).then(files => {
-      setContents(files);
-    });
-  }, [getFiles]);
 
   return (
     <div id="app">
@@ -58,7 +51,7 @@ export function App() {
             )}
           </>
         ) : (
-          <Login handleLogin={handleLogin(refetchFiles, filePathArr)} error={error} />
+          <Login />
         )
       ) : (
         <div>Loading...</div>

@@ -15,9 +15,10 @@ interface ClientContextType {
   error: string | null;
 
   handleLogin: (
-    f?: (args: string[]) => void,
-    args?: string[]
-  ) => (username: string, password: string, e: FormEvent) => Promise<void>;
+    username: string,
+    password: string,
+    e: FormEvent
+  ) => Promise<void>;
   handleLogoff: () => Promise<void>;
   getFiles: (dirs: string[]) => Promise<FileData[] | null>;
 }
@@ -54,76 +55,75 @@ export function ClientProvider({
     void checkAuth();
   }, []);
 
-  const getFiles = useCallback(async (dirs: string[]): Promise<FileData[] | null> => {
-    setIsLoading(true);
-    setError(null);
+  const getFiles = useCallback(
+    async (dirs: string[]): Promise<FileData[] | null> => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const path = dirs.filter(d => d !== '').join('/');
-      const url = `/api/files/${path}`;
-      const response = await fetch(url);
+      try {
+        const path = dirs.filter(d => d !== '').join('/');
+        const url = `/api/files/${path}`;
+        const response = await fetch(url);
 
-      if (response.status === 401) {
-        setIsAuthenticated(false);
-        setIsLoading(false);
-        return [];
-      }
-
-      if (!response.ok) {
-        if (response.status === 404) {
+        if (response.status === 401) {
+          setIsAuthenticated(false);
           setIsLoading(false);
-          return null;
+          return [];
         }
-        throw new Error(`Failed to fetch files: ${response.statusText}`);
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            setIsLoading(false);
+            return null;
+          }
+          throw new Error(`Failed to fetch files: ${response.statusText}`);
+        }
+
+        const data = (await response.json()) as { contents?: FileData[] };
+        setIsLoading(false);
+
+        // Return the contents array, or empty array if at root
+        return data.contents || [];
+      } catch (err) {
+        // Error fetching files - suppress console error in production
+        setError(err instanceof Error ? err.message : 'Failed to fetch files');
+        setIsLoading(false);
+        return null;
       }
-
-      const data = await response.json() as { contents?: FileData[] };
-      setIsLoading(false);
-
-      // Return the contents array, or empty array if at root
-      return data.contents || [];
-    } catch (err) {
-      // Error fetching files - suppress console error in production
-      setError(err instanceof Error ? err.message : 'Failed to fetch files');
-      setIsLoading(false);
-      return null;
-    }
-  }, []);
-
+    },
+    []
+  );
 
   const handleLogin = useCallback(
-    (f: (args: string[]) => void = () => {}, args: string[] = []) => {
-      return async (username: string, password: string, e: FormEvent) => {
-        setIsLoading(true);
-        setError(null);
-        e.preventDefault();
+    async (username: string, password: string, e: FormEvent) => {
+      setIsLoading(true);
+      setError(null);
+      e.preventDefault();
 
-        try {
-          const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
-          });
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
 
-          if (!response.ok) {
-            if (response.status === 401) {
-              throw new Error('Invalid username or password');
-            }
-            throw new Error('Login failed');
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Invalid username or password');
           }
-
-          setIsAuthenticated(true);
-          f(args);
-        } catch (err) {
-          // Login failed - suppress console error in production
-          setError(err instanceof Error ? err.message : 'Login failed');
-          setIsAuthenticated(false);
-        } finally {
-          setIsLoading(false);
+          throw new Error('Login failed');
         }
-      };
+
+        setIsAuthenticated(true);
+      } catch (err) {
+        // Login failed - suppress console error in production
+        setError(err instanceof Error ? err.message : 'Login failed');
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
     },
     []
   );

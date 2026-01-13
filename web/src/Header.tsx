@@ -30,9 +30,7 @@ export function Header() {
   };
   return (
     <HeaderWrapper id="header" $isAuthenticated={isAuthenticated}>
-      {isAuthenticated && (
-        <button onClick={handleLogoutClick}>Logout</button>
-      )}
+      {isAuthenticated && <button onClick={handleLogoutClick}>Logout</button>}
       <h1>File Browser</h1>
     </HeaderWrapper>
   );

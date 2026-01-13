@@ -1,5 +1,6 @@
 import { FormEvent, useState } from 'react';
 import styled from 'styled-components';
+import { useClient } from '../utils/ClientContext';
 
 const LoginWrapper = styled.div`
   margin-top: 1em;
@@ -31,18 +32,19 @@ const LoginWrapper = styled.div`
   }
 `;
 
-export function Login(props: LoginProps) {
+export function Login() {
+  const { handleLogin, error } = useClient();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e: FormEvent) => {
-    void props.handleLogin(username, password, e);
+    void handleLogin(username, password, e);
   };
 
   return (
     <LoginWrapper>
       <h2>Login</h2>
-      {props.error && <div className="error">{props.error}</div>}
+      {error && <div className="error">{error}</div>}
       <form onSubmit={handleSubmit}>
         <label htmlFor="username">username</label>
         <br />
@@ -72,8 +74,3 @@ export function Login(props: LoginProps) {
     </LoginWrapper>
   );
 }
-
-type LoginProps = {
-  handleLogin: (username: string, password: string, e: FormEvent) => Promise<void>;
-  error: string | null;
-};

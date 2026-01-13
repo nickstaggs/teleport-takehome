@@ -17,7 +17,7 @@ const (
 
 var (
 	// pathWhitelistRegex allows alphanumeric, /, _, ., and -
-	pathWhitelistRegex = regexp.MustCompile(`^[a-zA-Z0-9/_.\-]*$`)
+	pathWhitelistRegex = regexp.MustCompile(`^[a-zA-Z0-9/_.\-@]*$`)
 )
 
 // Server serves the directory browser API and webapp.
@@ -151,32 +151,32 @@ func (s *Server) validatePath(path string) error {
 func (s *Server) resolvePath(urlPath string) (string, error) {
 	// Clean the path to remove any .. or . components
 	cleanPath := filepath.Clean(urlPath)
-	
+
 	// Join with root directory
 	fullPath := filepath.Join(s.rootDir, cleanPath)
-	
+
 	// Get absolute paths for comparison
 	fullPathAbs, err := filepath.Abs(fullPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to get absolute path: %w", err)
 	}
-	
+
 	rootDirAbs, err := filepath.Abs(s.rootDir)
 	if err != nil {
 		return "", fmt.Errorf("failed to get absolute root directory: %w", err)
 	}
-	
+
 	// Use filepath.Rel to check if fullPath is within rootDir
 	relPath, err := filepath.Rel(rootDirAbs, fullPathAbs)
 	if err != nil {
 		return "", fmt.Errorf("failed to compute relative path: %w", err)
 	}
-	
+
 	// If the relative path starts with "..", it's outside the root directory
 	if strings.HasPrefix(relPath, "..") {
 		return "", fmt.Errorf("path traversal attempt detected")
 	}
-	
+
 	// Resolve any symlinks if the path exists
 	resolvedPath, err := filepath.EvalSymlinks(fullPath)
 	if err != nil {
@@ -187,18 +187,18 @@ func (s *Server) resolvePath(urlPath string) (string, error) {
 		}
 		return "", fmt.Errorf("failed to resolve path: %w", err)
 	}
-	
+
 	// Ensure the resolved path is still within the root directory (in case of symlinks)
 	relPathResolved, err := filepath.Rel(rootDirAbs, resolvedPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to compute relative path for resolved path: %w", err)
 	}
-	
+
 	// If the relative path starts with "..", it's outside the root directory
 	if strings.HasPrefix(relPathResolved, "..") {
 		return "", fmt.Errorf("path traversal attempt detected")
 	}
-	
+
 	return resolvedPath, nil
 }
 
