@@ -23,16 +23,27 @@ const LoginWrapper = styled.div`
   form * {
     margin: 0.25rem 1rem 1rem 1rem;
   }
+
+  .error {
+    color: red;
+    margin: 0.5rem 1rem;
+    text-align: center;
+  }
 `;
 
 export function Login(props: LoginProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
+  const handleSubmit = (e: FormEvent) => {
+    void props.handleLogin(username, password, e);
+  };
+
   return (
     <LoginWrapper>
       <h2>Login</h2>
-      <form onSubmit={e => props.handleLogin(username, password, e)}>
+      {props.error && <div className="error">{props.error}</div>}
+      <form onSubmit={handleSubmit}>
         <label htmlFor="username">username</label>
         <br />
         <input
@@ -63,5 +74,6 @@ export function Login(props: LoginProps) {
 }
 
 type LoginProps = {
-  handleLogin: (username: string, password: string, e: FormEvent) => void;
+  handleLogin: (username: string, password: string, e: FormEvent) => Promise<void>;
+  error: string | null;
 };

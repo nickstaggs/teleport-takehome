@@ -5,20 +5,21 @@ import {
   useContext,
   ReactNode,
   useCallback,
+  useEffect,
 } from 'react';
 import { FileData } from './types';
-import mockData from '../MockData.json';
 
 interface ClientContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  error: string | null;
+
   handleLogin: (
-    f?: (args: any) => void,
-    args?: any
-  ) => (_: string, __: string, e: FormEvent) => void;
-  handleLogoff: () => void;
-  getFiles: (dirs: string[]) => FileData[] | null;
+    f?: (args: string[]) => void,
+    args?: string[]
+  ) => (username: string, password: string, e: FormEvent) => Promise<void>;
+  handleLogoff: () => Promise<void>;
+  getFiles: (dirs: string[]) => Promise<FileData[] | null>;
 }
 
 const ClientContext = createContext<ClientContextType | null>(null);
@@ -30,65 +31,123 @@ export function ClientProvider({
 }): ReactNode {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const getFiles = useCallback((dirs: string[]) => {
-    setIsLoading(true);
-    if (localStorage.getItem('loggedIn') !== 'true') {
-      setIsAuthenticated(false);
-      setIsLoading(false);
-      return [];
-    } else {
-      setIsAuthenticated(true);
-    }
-    const files = mockData.contents as (FileData & { contents: FileData[] })[];
-
-    const recurseThroughDirs = (
-      contents: (FileData & { contents: FileData[] })[],
-      dirs: string[]
-    ): FileData[] | null => {
-      if (dirs.length === 0) {
-        return contents;
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Try to fetch files to check if we have a valid session
+        const response = await fetch('/api/files/');
+        if (response.ok) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch {
+        // Auth check failed - suppress console error in production
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
       }
-
-      const dir = contents.find(
-        c => c.name === dirs[0] && c.type === 'directory'
-      );
-
-      if (dir === undefined) {
-        return null;
-      }
-
-      return recurseThroughDirs(
-        dir.contents as (FileData & { contents: FileData[] })[],
-        dirs.slice(1)
-      );
     };
-
-    setIsLoading(false);
-
-    return recurseThroughDirs(files, dirs);
+    void checkAuth();
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleLogin = useCallback(
-    (f: (args: any) => void = () => {}, args: any) => {
-      return (_: string, __: string, e: FormEvent) => {
-        setIsLoading(true);
-        e.preventDefault();
-        localStorage.setItem('loggedIn', 'true');
-        setIsAuthenticated(true);
-        f(args);
+  const getFiles = useCallback(async (dirs: string[]): Promise<FileData[] | null> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const path = dirs.join('/');
+      const url = `/api/files/${path}`;
+      const response = await fetch(url);
+
+      if (response.status === 401) {
+        setIsAuthenticated(false);
         setIsLoading(false);
+        return [];
+      }
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          setIsLoading(false);
+          return null;
+        }
+        throw new Error(`Failed to fetch files: ${response.statusText}`);
+      }
+
+      const data = await response.json() as { contents?: FileData[] };
+      setIsLoading(false);
+
+      // Return the contents array, or empty array if at root
+      return data.contents || [];
+    } catch (err) {
+      // Error fetching files - suppress console error in production
+      setError(err instanceof Error ? err.message : 'Failed to fetch files');
+      setIsLoading(false);
+      return null;
+    }
+  }, []);
+
+
+  const handleLogin = useCallback(
+    (f: (args: string[]) => void = () => {}, args: string[] = []) => {
+      return async (username: string, password: string, e: FormEvent) => {
+        setIsLoading(true);
+        setError(null);
+        e.preventDefault();
+
+        try {
+          const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+          });
+
+          if (!response.ok) {
+            if (response.status === 401) {
+              throw new Error('Invalid username or password');
+            }
+            throw new Error('Login failed');
+          }
+
+          setIsAuthenticated(true);
+          f(args);
+        } catch (err) {
+          // Login failed - suppress console error in production
+          setError(err instanceof Error ? err.message : 'Login failed');
+          setIsAuthenticated(false);
+        } finally {
+          setIsLoading(false);
+        }
       };
     },
     []
   );
 
-  const handleLogoff = useCallback(() => {
+  const handleLogoff = useCallback(async () => {
     setIsLoading(true);
-    localStorage.removeItem('loggedIn');
-    setIsAuthenticated(false);
-    setIsLoading(false);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/logout', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Logout failed');
+      }
+
+      setIsAuthenticated(false);
+    } catch (err) {
+      // Logout failed - suppress console error in production
+      setError(err instanceof Error ? err.message : 'Logout failed');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   return (
@@ -96,6 +155,7 @@ export function ClientProvider({
       value={{
         isAuthenticated,
         isLoading,
+        error,
         handleLogin,
         handleLogoff,
         getFiles,

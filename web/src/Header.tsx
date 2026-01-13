@@ -23,10 +23,13 @@ const HeaderWrapper = styled.div`
 
 export function Header() {
   const { handleLogoff, isAuthenticated } = useClient();
+  const handleLogoutClick = () => {
+    void handleLogoff();
+  };
   return (
     <HeaderWrapper id="header">
       {isAuthenticated && (
-        <button onClick={() => handleLogoff()}>Logout</button>
+        <button onClick={handleLogoutClick}>Logout</button>
       )}
       <h1>File Browser</h1>
     </HeaderWrapper>

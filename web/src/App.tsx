@@ -11,17 +11,30 @@ import { useClient } from './utils/ClientContext';
 export function App() {
   const { sortState, search, handleSearchChange, handleSortChange } =
     useSortAndFilterState();
-  const { getFiles, isLoading, isAuthenticated, handleLogin } = useClient();
+  const { getFiles, isLoading, isAuthenticated, handleLogin, error } = useClient();
   const [contents, setContents] = useState<FileData[] | null>([]);
   const [filePathArr, setFilePathArr] = useState<string[]>([]);
   const params = useParams();
 
   useEffect(() => {
     let filePath = params['*'];
-    const dirs = filePath?.split('/') ?? [];
+    const dirs = filePath?.split('/').filter(d => d !== '') ?? [];
     setFilePathArr(dirs);
-    setContents(getFiles(dirs));
-  }, [params, getFiles]);
+
+    // Fetch files if authenticated
+    if (isAuthenticated) {
+      void getFiles(dirs).then(files => {
+        setContents(files);
+      });
+    }
+  }, [params, getFiles, isAuthenticated]);
+
+  // Create a callback that refetches files after login
+  const refetchFiles = (dirs: string[]) => {
+    void getFiles(dirs).then(files => {
+      setContents(files);
+    });
+  };
 
   return (
     <div id="app">
@@ -45,7 +58,7 @@ export function App() {
             )}
           </>
         ) : (
-          <Login handleLogin={handleLogin(getFiles, filePathArr)} />
+          <Login handleLogin={handleLogin(refetchFiles, filePathArr)} error={error} />
         )
       ) : (
         <div>Loading...</div>
