@@ -50,6 +50,8 @@ To ensure you have an up to date copy of the web app in your binary, you should:
 - `cd ..`
 - `go build`
 
+There are 2 hardcoded users `alice` and `bob` both with passwords of `password`
+
 The Go app is hardcoded to listen on port 8080.
 
 For a faster feedback loop and more developer friendly process, you can run
